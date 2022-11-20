@@ -24,4 +24,35 @@ router.post("/signup", function (req, res, next) {
   }
 });
 
+router.post("/login", async function (req, res, next) {
+  try {
+    const username = req.body.username;
+    const password = req.body.password;
+
+    const usersRef = db.collection("users");
+    const query = usersRef.where("username", "==", username);
+    const result = await query.get();
+
+    if (!result.empty) {
+      let response;
+
+      result.forEach((doc) => {
+        response = doc.data();
+      });
+
+      const isMatch = bcrypt.compareSync(password, response.password);
+
+      if (isMatch) {
+        res.send({ status: true, result: response });
+      } else {
+        res.send({ status: false, message: "Password not match" });
+      }
+    } else {
+      res.send({ status: false, message: "Username not found" });
+    }
+  } catch (e) {
+    res.send(e);
+  }
+});
+
 module.exports = router;
