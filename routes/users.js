@@ -43,12 +43,15 @@ router.post("/login", async function (req, res, next) {
       const isMatch = bcrypt.compareSync(password, response.password);
 
       if (isMatch) {
-        res.send({ status: true, result: response });
+        res.statusCode = 200;
+        res.send({ result: response });
       } else {
-        res.send({ status: false, message: "Password not match" });
+        res.statusCode = 401;
+        res.send({ message: "Password not match" });
       }
     } else {
-      res.send({ status: false, message: "Username not found" });
+      res.statusCode = 401;
+      res.send({ message: "Username not found" });
     }
   } catch (e) {
     res.send(e);
