@@ -5,20 +5,35 @@ var router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const db = fire.firestore();
 
-router.post("/signup", function (req, res, next) {
+router.post("/signup", async function (req, res, next) {
   try {
     const id = uuidv4();
-    const password = bcrypt.hashSync(req.body.password, 10);
+    const username = req.body.username;
+    const password = req.body.password;
+    const email = req.body.email;
+    const passHash = bcrypt.hashSync(password, 10);
 
-    const userJson = {
-      id: id,
-      email: req.body.email,
-      username: req.body.username,
-      password: password,
-    };
+    const usersRef = db.collection("users");
+    const query = usersRef.where("username", "==", username);
+    const result = await query.get();
 
-    const response = db.collection("users").doc(id).set(userJson);
-    res.send(response);
+    console.log({ email, password, username });
+
+    if (result.empty) {
+      const userJson = {
+        id: id,
+        email: email,
+        username: username,
+        password: passHash,
+      };
+
+      db.collection("users").doc(id).set(userJson);
+      res.statusCode = 200;
+      res.send({ result: userJson });
+    } else {
+      res.statusCode = 401;
+      res.send({ message: "Username already exists" });
+    }
   } catch (e) {
     res.send(e);
   }
