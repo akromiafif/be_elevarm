@@ -17,8 +17,6 @@ router.post("/signup", async function (req, res, next) {
     const query = usersRef.where("username", "==", username);
     const result = await query.get();
 
-    console.log({ email, password, username });
-
     if (result.empty) {
       const userJson = {
         id: id,
@@ -68,6 +66,44 @@ router.post("/login", async function (req, res, next) {
       res.statusCode = 401;
       res.send({ message: "Username not found" });
     }
+  } catch (e) {
+    res.send(e);
+  }
+});
+
+router.get("/user-info/:id", async function (req, res, next) {
+  try {
+    const id = req.params.id;
+    const foodsRef = db.collection("users").doc(id);
+    const response = await foodsRef.get();
+
+    res.send(response.data());
+  } catch (e) {
+    res.send(e);
+  }
+});
+
+router.post("/edit-user", async function (req, res, next) {
+  try {
+    const id = req.body.id;
+    const username = req.body.username;
+    const email = req.body.email;
+    const password = bcrypt.hashSync(req.body.password, 10);
+
+    const usersRef = await db.collection("users").doc(id);
+    usersRef.update({
+      username,
+      email,
+      password,
+    });
+
+    res.statusCode = 200;
+    res.send({
+      id,
+      username,
+      email,
+      password,
+    });
   } catch (e) {
     res.send(e);
   }
